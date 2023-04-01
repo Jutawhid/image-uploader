@@ -23,12 +23,14 @@ import CardMedia from "@mui/material/CardMedia";
 import { CardActionArea } from "@mui/material";
 const theme = createTheme();
 
-export default function createblog({ user }) {
+export default function uploadImage({ user, Allimages }) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [image, setImage] = useState(null);
+  const [imageList, setImageList] = useState(Allimages);
   const [url, setUrl] = useState("");
   const [progress, setProgress] = useState(0);
+  const [uploadLimit, setUploadLimit] = useState(true);
 
   useEffect(() => {
     if (url) {
@@ -50,7 +52,14 @@ export default function createblog({ user }) {
         resetState();
       }
     }
-  }, [url]);
+
+    let limitCount = imageList?.filter(
+      (item) => item?.postedBy == user?.uid
+    )?.length;
+    if (limitCount >= 2) {
+      setUploadLimit(false);
+    }
+  }, [url, imageList]);
   const resetState = () => {
     setImage(null);
     setTitle("");
@@ -62,27 +71,32 @@ export default function createblog({ user }) {
       toast.error("Please add all the fields");
       return;
     }
-    var uploadTask = storage.ref().child(`image/${uuidv4()}`).put(image);
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        if (progress == "100")
-          //   M.toast({ html: "Image Uploaded", classes: "green" });
-          toast.success("Image Uploaded");
-        setProgress(100);
-      },
-      (error) => {
-        // M.toast({ html: error.message, classes: "red" });
-        toast.error(error.message);
-      },
-      () => {
-        uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-          console.log("File available at", downloadURL);
-          setUrl(downloadURL);
-        });
-      }
-    );
+    if (uploadLimit) {
+      var uploadTask = storage.ref().child(`image/${uuidv4()}`).put(image);
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          var progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          if (progress == "100")
+            //   M.toast({ html: "Image Uploaded", classes: "green" });
+            toast.success("Image Uploaded");
+          setProgress(100);
+        },
+        (error) => {
+          // M.toast({ html: error.message, classes: "red" });
+          toast.error(error.message);
+        },
+        () => {
+          uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+            console.log("File available at", downloadURL);
+            setUrl(downloadURL);
+          });
+        }
+      );
+    } else {
+      toast.error("2 Limit end");
+    }
   };
   return (
     <ThemeProvider theme={theme}>
@@ -175,7 +189,7 @@ export default function createblog({ user }) {
             </Box>
           )}
         </Box>
-        <Grid container justifyContent="flex-start" sx={{ ml: '20px'}}>
+        <Grid container justifyContent="flex-start" sx={{ ml: "20px" }}>
           <Grid item>
             <Link href="/" variant="body2">
               Got To List
@@ -185,4 +199,22 @@ export default function createblog({ user }) {
       </Container>
     </ThemeProvider>
   );
+}
+
+export async function getServerSideProps(context) {
+  const querySnap = await db
+    .collection("images")
+    .orderBy("createdAt", "desc")
+    .get();
+  const Allimages = querySnap.docs.map((docSnap) => {
+    return {
+      ...docSnap.data(),
+      createdAt: docSnap.data().createdAt.toMillis(),
+      id: docSnap.id,
+    };
+  });
+
+  return {
+    props: { Allimages }, // will be passed to the page component as props
+  };
 }
