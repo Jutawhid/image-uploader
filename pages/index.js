@@ -1,5 +1,5 @@
-import { db } from "../firebase";
-import { doc, updateDoc, deleteDoc} from "firebase/firestore";
+import { db, storage } from "../firebase";
+import { deleteObject, ref } from "firebase/storage";
 import Link from "next/link";
 import { useState } from "react";
 import * as React from "react";
@@ -23,34 +23,41 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Container from "@mui/material/Container";
 import CssBaseline from "@mui/material/CssBaseline";
 import Image from "next/image";
+import { toast } from "react-toastify";
 const theme = createTheme();
 
 const Demo = styled("div")(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
 }));
 
-export default function Home({ Allimages }) {
-  const [images, setimages] = useState(Allimages);
-  const [end, setEnd] = useState(false);
+export default function Home({ Allimages, user }) {
+  // const database = getFirestore();
+  const [images, setimages] = useState([]);
   const [dense, setDense] = React.useState(false);
   const [secondary, setSecondary] = React.useState(false);
   console.log("All Images", Allimages);
-  const handledelete = async (e) => {
-    const docRef = doc(
-      db,
-      "images",
-      e
-    );
-    await deleteDoc(docRef)
-      .then(() => {
-        console.log(
-          `${e.target.parentNode.children[0].textContent} has been deleted successfully.`
-        );
+  React.useEffect(() => {
+    setimages(Allimages);
+  }, [images]);
+  const handledelete = async (id, imageUrl) => {
+    // const docRef = db.collection("images", e);
+
+    await db
+      .collection("images")
+      .doc(id)
+      .delete()
+      .then((res) => {
+        console.log("res", res);
+        toast.success("Image Successfully Deleted");
+        setTimeout(() => {
+          location.reload();
+        }, 2000);
       })
       .catch((error) => {
         console.log(error);
       });
   };
+  console.log("image", images);
   return (
     <ThemeProvider theme={theme}>
       <Container component="main" maxWidth="xs">
@@ -65,7 +72,7 @@ export default function Home({ Allimages }) {
         >
           <Grid container spacing={2}>
             <Grid item xs={12} md={12}>
-              <Typography sx={{ mt: 4, mb: 2 }} variant="h6" component="div">
+              <Typography sx={{ mt: 4, mb: 2 ,textAlign: 'center'}} variant="h6" component="div">
                 Uploaded By Admin
               </Typography>
               <Demo>
@@ -77,13 +84,7 @@ export default function Home({ Allimages }) {
                         ?.filter((role) => role.role == "admin")
                         ?.map((image) => {
                           return (
-                            <ListItem
-                              secondaryAction={
-                                <IconButton edge="end" aria-label="delete">
-                                  <DeleteIcon />
-                                </IconButton>
-                              }
-                            >
+                            <ListItem>
                               <ListItemAvatar>
                                 <Avatar>
                                   <Image
@@ -96,6 +97,15 @@ export default function Home({ Allimages }) {
                               </ListItemAvatar>
                               <ListItemText />
                               {image?.title && image.title}
+                              {image?.postedBy == user?.uid && (
+                                <IconButton
+                                  edge="end"
+                                  aria-label="delete"
+                                  onClick={() => handledelete(image.id)}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              )}
                             </ListItem>
                           );
                         })}
@@ -118,38 +128,50 @@ export default function Home({ Allimages }) {
         >
           <Grid container spacing={2}>
             <Grid item xs={12} md={12}>
-              <Typography sx={{ mt: 4, mb: 2 }} variant="h6" component="div">
+              <Typography sx={{ mt: 4, mb: 2, textAlign: 'center' }} variant="h6" component="div">
                 Uploaded By Users
               </Typography>
               <Demo>
                 <List dense={dense}>
-                  {images
-                    ?.filter((role) => role.role == "user")
-                    ?.map((image) => {
-                      return (
-                        <ListItem
-                        >
-                          <ListItemAvatar>
-                            <Avatar>
-                              {/* <FolderIcon /> */}
-                              {/* <Image src={image.imageUrl} width="50" height="50" /> */}
-                              <Image
-                                // loader={myLoader}
-                                src={image.imageUrl}
-                                alt={image?.title}
-                                width={50}
-                                height={50}
-                              />
-                            </Avatar>
-                          </ListItemAvatar>
-                          <ListItemText />
-                          {image?.title && image.title}
-                          <IconButton edge="end" aria-label="delete" onClick={() =>handledelete(image.id)}>
-                              <DeleteIcon />
-                            </IconButton>
-                        </ListItem>
-                      );
-                    })}
+                  {images?.filter((role) => role.role == "admin")?.length !==
+                  0 ? (
+                    <>
+                      {images
+                        ?.filter((role) => role.role == "user")
+                        ?.map((image) => {
+                          return (
+                            <ListItem>
+                              <ListItemAvatar>
+                                <Avatar>
+                                  {/* <FolderIcon /> */}
+                                  {/* <Image src={image.imageUrl} width="50" height="50" /> */}
+                                  <Image
+                                    // loader={myLoader}
+                                    src={image.imageUrl}
+                                    alt={image?.title}
+                                    width={50}
+                                    height={50}
+                                  />
+                                </Avatar>
+                              </ListItemAvatar>
+                              <ListItemText />
+                              {image?.title && image.title}
+                              {image?.postedBy == user?.uid && (
+                                <IconButton
+                                  edge="end"
+                                  aria-label="delete"
+                                  onClick={() => handledelete(image.id)}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              )}
+                            </ListItem>
+                          );
+                        })}
+                    </>
+                  ) : (
+                    <p style={{ color: "gray" }}>No Image Uploaded</p>
+                  )}
                 </List>
               </Demo>
             </Grid>

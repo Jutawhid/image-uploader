@@ -14,9 +14,13 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { auth } from "../firebase";
 import * as Yup from "yup";
 import TextField from "@mui/material/TextField";
-import LinearProgress from '@mui/material/LinearProgress';
+import LinearProgress from "@mui/material/LinearProgress";
 import { toast } from "react-toastify";
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import CardMedia from "@mui/material/CardMedia";
+import { CardActionArea } from "@mui/material";
 const theme = createTheme();
 
 export default function createblog({ user }) {
@@ -38,14 +42,21 @@ export default function createblog({ user }) {
         });
         // M.toast({ html: "Blog Created", classes: "green" });
         toast.success("Successfully Added");
+        resetState();
       } catch (err) {
         // M.toast({ html: "error creating blog", classes: "red" });
         toast.error(err.message);
         console.log("Error", err.message);
+        resetState();
       }
     }
   }, [url]);
-
+  const resetState = () => {
+    setImage(null);
+    setTitle("");
+    setProgress(0);
+    // setUrl("");
+  };
   const SubmitDetails = () => {
     if (!title || !image) {
       toast.error("Please add all the fields");
@@ -59,7 +70,7 @@ export default function createblog({ user }) {
         if (progress == "100")
           //   M.toast({ html: "Image Uploaded", classes: "green" });
           toast.success("Image Uploaded");
-          setProgress(100)
+        setProgress(100);
       },
       (error) => {
         // M.toast({ html: error.message, classes: "red" });
@@ -104,12 +115,16 @@ export default function createblog({ user }) {
                     onChange={(e) => setTitle(e.target.value)}
                     label="Title"
                     name="title"
-                    sx={{width:'100%'}}
+                    sx={{ width: "100%" }}
                   />
                 </Box>
               </Grid>
               <Grid item xs={12}>
-                <Button variant="contained" component="label" sx={{width:'100%'}}>
+                <Button
+                  variant="contained"
+                  component="label"
+                  sx={{ width: "100%" }}
+                >
                   <span>Select Image</span>
                   {/* <input type="file" hidden /> */}
                   {/* {image ? (<span>{image}</span>) : (<span>Select Image</span>)} */}
@@ -123,10 +138,7 @@ export default function createblog({ user }) {
                 {image && (
                   <Box className="my20" display="flex" alignItems="center">
                     <Box width="100%" mr={1}>
-                      <LinearProgress
-                        variant="determinate"
-                        value={progress}
-                      />
+                      <LinearProgress variant="determinate" value={progress} />
                     </Box>
                     <Box minWidth={35}>
                       <Typography
@@ -139,7 +151,7 @@ export default function createblog({ user }) {
               </Grid>
             </Grid>
             <Button
-            disabled={!image}
+              disabled={!image}
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
@@ -148,48 +160,29 @@ export default function createblog({ user }) {
               Submit
             </Button>
           </Box>
+          {url != "" && (
+            <Box>
+              <Card sx={{ maxWidth: 345 }}>
+                <CardActionArea>
+                  <CardMedia
+                    component="img"
+                    height="140"
+                    image={url}
+                    alt="green iguana"
+                  />
+                </CardActionArea>
+              </Card>
+            </Box>
+          )}
         </Box>
+        <Grid container justifyContent="flex-start" sx={{ ml: '20px'}}>
+          <Grid item>
+            <Link href="/" variant="body2">
+              Got To List
+            </Link>
+          </Grid>
+        </Grid>
       </Container>
     </ThemeProvider>
-    // <div className="input-field rootdiv">
-    //     <h3>Create A Blog !!</h3>
-    //     <input
-    //     type="text"
-    //     value={title}
-    //     placeholder="Title"
-    //     onChange={(e)=>setTitle(e.target.value)}
-
-    //     />
-    //     <textarea
-    //      type="text"
-    //      value={body}
-    //      placeholder="body"
-    //      onChange={(e)=>setBody(e.target.value)}
-
-    //     />
-    //      <div className="file-field input-field">
-    //         <div className="btn #fb8c00 blue darken-1">
-    //             <span>File</span>
-    //             <input type="file"  onChange={(e)=>setImage(e.target.files[0])} />
-    //         </div>
-    //         <div className="file-path-wrapper">
-    //             <input className="file-path validate" type="text" />
-    //         </div>
-    //      </div>
-    //      <button className="btn #fb8c00 blue darken-1" onClick={()=>SubmitDetails()}>Submit Post</button>
-
-    //      <style jsx>
-    //          {`
-
-    //          .rootdiv{
-    //              margin:30px auto;
-    //              max-width:600px;
-    //              padding:20px;
-    //              text-align:center;
-    //          }
-    //          `}
-    //      </style>
-
-    // </div>
   );
 }
