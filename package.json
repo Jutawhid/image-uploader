@@ -1,20 +1,24 @@
 {
-  "name": "image-uploader",
+  "name": "nextjsblog",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "next start"
   },
   "dependencies": {
-    "eslint": "8.37.0",
-    "eslint-config-next": "13.2.4",
-    "firebase": "^9.19.0",
+    "@emotion/react": "^11.10.6",
+    "@emotion/styled": "^11.10.6",
+    "@mui/icons-material": "^5.11.11",
+    "@mui/material": "^5.11.15",
+    "firebase": "^8.3.1",
+    "formik-material-ui": "^4.0.0-alpha.2",
     "next": "13.2.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "uuid": "^9.0.0"
+    "react-toastify": "^9.1.2",
+    "uuid": "9.0.0",
+    "yup": "^1.0.2"
   }
 }
